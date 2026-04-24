@@ -71,6 +71,8 @@
               mkdir -p $out/share/defuddle-proxy
               cp -r dist/. $out/share/defuddle-proxy/
               cp -r views/ $out/share/defuddle-proxy/views/
+              cp -r node_modules/ $out/share/defuddle-proxy/node_modules/
+              cp package.json $out/share/defuddle-proxy/
 
               # Wrapper
               mkdir -p $out/bin
