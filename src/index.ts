@@ -10,6 +10,7 @@ if (process.env.TZ) {
 import express from "express";
 import session from "express-session";
 import path from "path";
+import { existsSync } from "fs";
 import { fileURLToPath } from "url";
 import adminRouter from "./routes/admin.js";
 import { apiKeyAuth } from "./middleware/api-auth.js";
@@ -42,7 +43,8 @@ app.use(
 );
 
 app.set("view engine", "ejs");
-app.set("views", path.resolve(__dirname, "../views"));
+const viewsDir = path.resolve(__dirname, "views");
+app.set("views", existsSync(viewsDir) ? viewsDir : path.resolve(__dirname, "../views"));
 
 app.use("/admin", adminRouter);
 
