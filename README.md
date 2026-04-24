@@ -1,48 +1,166 @@
+<div align="center">
+
 # Defuddle Proxy
 
-自托管的 [Defuddle](https://defuddle.com) 解析代理服务，提供 API Key 认证、用量统计和管理后台。
+[![Express](https://img.shields.io/badge/Express-5-000000.svg?logo=express)](https://expressjs.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57.svg?logo=sqlite)](https://www.sqlite.org/)
+[![License](https://img.shields.io/badge/License-WTFPL-FF4136.svg)](http://www.wtfpl.net/)
 
-## 功能
+**Self-hosted Defuddle Parsing Proxy — API Key Auth · Usage Stats · Admin Dashboard**
 
-- **解析代理** — 兼容 Defuddle 官方 API 风格，返回 Markdown + YAML frontmatter
-- **API Key 管理** — 创建、重命名、删除 Key，支持 `sk-` 前缀密钥
-- **管理后台** — 暗色主题，Key 管理 + 域名排行 + 用量统计
-- **安全防护** — CSRF / XSS / timing-safe 比较 / rate limit / cookie 加固
+[中文](README_CN.md) | English
 
-## 快速开始
+</div>
 
-### 本地开发
+Self-hosted [Defuddle](https://github.com/kepano/defuddle) parsing proxy service. Compatible with the official Defuddle API style, returns Markdown + YAML frontmatter, with API Key management, usage statistics, and an admin dashboard.
+
+## Features
+
+- **Parsing Proxy** — Compatible with Defuddle API style, returns Markdown + YAML frontmatter
+- **API Key Management** — Create, rename, delete keys with `sk-` prefix
+- **Admin Dashboard** — Dark theme, key management + domain ranking + usage statistics
+- **Security** — CSRF / XSS / timing-safe comparison / rate limit / cookie hardening
+
+## Tech Stack
+
+| Category | Technology |
+|----------|-----------|
+| Runtime | Node.js + TypeScript (strict mode) |
+| Server | Express 5 |
+| Database | SQLite (better-sqlite3, WAL mode) |
+| Template | EJS (dark theme) |
+| Parsing | Defuddle + linkedom + undici |
+
+## Getting Started
+
+### Local Development
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 配置环境变量
+# Configure environment variables
 cp .env.example .env
-# 编辑 .env 修改密码和密钥
+# Edit .env to change password and secret
 
-# 开发模式（自动重载）
+# Development (auto-reload)
 npm run dev
 
-# 生产构建
+# Production build
 npm run build
 npm start
 ```
 
-### Docker 部署
+### Docker
 
 ```bash
-# 修改 docker-compose.yml 中的密码和密钥
+# Modify ADMIN_PASSWORD and SESSION_SECRET in docker-compose.yml
 docker compose up -d
 ```
 
-生产环境请务必修改 `ADMIN_PASSWORD` 和 `SESSION_SECRET`。若使用 HTTPS，取消 `COOKIE_SECURE` 的注释。
+Change `ADMIN_PASSWORD` and `SESSION_SECRET` in production. Uncomment `COOKIE_SECURE` when using HTTPS.
 
-## API 使用
+### Nix / NixOS
 
-### 认证
+Add the flake to your inputs:
 
-通过 API Key 认证，支持两种方式：
+```nix
+inputs.defuddle-proxy.url = "github:27Aaron/defuddle-proxy";
+```
+
+#### NixOS Module
+
+```nix
+{
+  imports = [ inputs.defuddle-proxy.nixosModules.default ];
+
+  services.defuddle-proxy = {
+    enable = true;
+    host = "0.0.0.0";
+    timezone = "Asia/Shanghai";
+    # Secrets (use environmentFile for production)
+    environmentFile = "/run/secrets/defuddle-proxy.env";
+    # Or set directly (WARNING: stored in /nix store, world-readable)
+    # sessionSecret = "your-random-secret";
+  };
+}
+```
+
+The `environmentFile` should contain:
+
+```env
+ADMIN_PASSWORD=your-secure-password
+SESSION_SECRET=your-random-secret
+```
+
+**NixOS options:**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enable` | `false` | Enable the service |
+| `package` | flake package | Defuddle Proxy package |
+| `port` | `3000` | Listening port |
+| `host` | `"127.0.0.1"` | Bind address, use `"0.0.0.0"` for all interfaces |
+| `dataDir` | `/var/lib/defuddle-proxy` | Database directory |
+| `adminUsername` | `"admin"` | Admin username |
+| `adminPassword` | `"changeme"` | Admin password. Prefer `environmentFile` |
+| `sessionSecret` | `null` | Session encryption secret. Prefer `environmentFile` |
+| `cookieSecure` | `false` | Set to `true` for HTTPS |
+| `timezone` | `"UTC"` | Timezone, e.g. `"Asia/Shanghai"` |
+| `user` / `group` | `"defuddle-proxy"` | Service user/group |
+| `environment` | `{ }` | Extra environment variables |
+| `environmentFile` | `null` | File with secrets (KEY=VALUE format) |
+
+The service runs as a systemd service with security hardening (`ProtectSystem`, `PrivateTmp`, `NoNewPrivileges`).
+
+#### Home Manager
+
+**Linux** (systemd user service):
+
+```nix
+{
+  imports = [ inputs.defuddle-proxy.homeManagerModules.default ];
+
+  services.defuddle-proxy = {
+    enable = true;
+    environmentFile = "/path/to/secrets.env";
+  };
+}
+```
+
+**macOS** (launchd agent) — same config, Home Manager auto-detects the platform and uses launchd instead of systemd.
+
+**Home Manager options:**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enable` | `false` | Enable the service |
+| `package` | flake package | Defuddle Proxy package |
+| `port` | `3000` | Listening port |
+| `host` | `"127.0.0.1"` | Bind address |
+| `dataDir` | `~/.local/share/defuddle-proxy` | Database directory |
+| `adminUsername` | `"admin"` | Admin username |
+| `adminPassword` | `"changeme"` | Admin password. Prefer `environmentFile` |
+| `sessionSecret` | `null` | Session encryption secret. Prefer `environmentFile` |
+| `cookieSecure` | `false` | Set to `true` for HTTPS |
+| `timezone` | `"UTC"` | Timezone |
+| `environment` | `{ }` | Extra environment variables |
+| `environmentFile` | `null` | File with secrets (KEY=VALUE format) |
+
+#### Dev Shell
+
+```bash
+nix develop
+```
+
+> Supports `x86_64-linux`, `aarch64-linux`, `x86_64-darwin`, `aarch64-darwin`.
+
+## API Usage
+
+### Authentication
+
+Authenticate via API Key, two methods supported:
 
 ```bash
 # Bearer Header
@@ -53,9 +171,9 @@ curl http://localhost:3000/https://example.com \
 curl http://localhost:3000/https://example.com?key=sk-your-api-key
 ```
 
-### 响应格式
+### Response Format
 
-返回 `text/plain`，内容为 Markdown + YAML frontmatter：
+Returns `text/plain` with Markdown + YAML frontmatter:
 
 ```yaml
 ---
@@ -71,71 +189,76 @@ published: "2024-01-01"
 Page content in Markdown...
 ```
 
-### 错误响应
+### Error Responses
 
-| 状态码 | 含义                       |
-| ------ | -------------------------- |
-| 400    | URL 缺失或无效             |
-| 401    | API Key 缺失或无效         |
-| 403    | API Key 已禁用             |
-| 429    | 请求频率超限（100次/分钟） |
-| 502    | 页面解析失败               |
+| Status | Description |
+|--------|-------------|
+| 400 | Missing or invalid URL |
+| 401 | Missing or invalid API Key |
+| 403 | API Key is disabled |
+| 429 | Rate limit exceeded (100 req/min) |
+| 502 | Page parsing failed |
 
-## 管理后台
+## Admin Dashboard
 
-访问 `http://localhost:3000/admin` 进入管理后台。
+Visit `http://localhost:3000/admin` to access the admin dashboard.
 
-- **API Keys** — 创建、重命名、删除 Key，查看每个 Key 的调用日志和每日统计
-- **域名排行** — 按调用次数排序的域名统计，点击查看详情
-- **Tab 分页** — 所有列表支持分页浏览
+- **API Keys** — Create, rename, delete keys, view per-key logs and daily stats
+- **Domain Ranking** — Domain stats sorted by request count, click for details
+- **Pagination** — All lists support paginated browsing
 
-## 环境变量
+## Environment Variables
 
-| 变量             | 默认值               | 说明                                                |
-| ---------------- | -------------------- | --------------------------------------------------- |
-| `PORT`           | `3000`               | 服务端口                                            |
-| `HOST`           | `127.0.0.1`          | 监听地址，Docker 部署需设为 `0.0.0.0`               |
-| `ADMIN_USERNAME` | `admin`              | 管理后台用户名                                      |
-| `ADMIN_PASSWORD` | `changeme`           | 管理后台密码（**生产环境必须修改**）                |
-| `SESSION_SECRET` | `dev-secret`         | Session 加密密钥（**生产环境必须修改**）            |
-| `DB_PATH`        | `./data/defuddle.db` | SQLite 数据库路径                                   |
-| `NODE_ENV`       | —                    | 设为 `production` 启用安全检查和 cookie secure      |
-| `COOKIE_SECURE`  | `false`              | 仅 HTTPS 时设为 `true`，让 cookie 只在 HTTPS 下传输 |
-| `TZ`             | `UTC`                | 时区，设为 `Asia/Shanghai` 使用北京时间             |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | Server port |
+| `HOST` | `127.0.0.1` | Bind address, use `0.0.0.0` for Docker |
+| `ADMIN_USERNAME` | `admin` | Admin username |
+| `ADMIN_PASSWORD` | `changeme` | Admin password (**must change in production**) |
+| `SESSION_SECRET` | `dev-secret` | Session encryption key (**must change in production**) |
+| `DB_PATH` | `./data/defuddle.db` | SQLite database path |
+| `NODE_ENV` | — | Set to `production` to enable security checks |
+| `COOKIE_SECURE` | `false` | Set to `true` for HTTPS |
+| `TZ` | `UTC` | Timezone, e.g. `Asia/Shanghai` |
 
-生产环境启动时，如果 `ADMIN_PASSWORD` 或 `SESSION_SECRET` 仍为默认值，服务将拒绝启动。
+The service refuses to start in production if `ADMIN_PASSWORD` or `SESSION_SECRET` remain at their defaults.
 
-## 技术栈
-
-- **Runtime**: Node.js + TypeScript (strict mode)
-- **Server**: Express 5
-- **Database**: SQLite (better-sqlite3, WAL mode)
-- **Template**: EJS (shadcn 风格暗色主题)
-- **Parsing**: Defuddle + linkedom + undici
-
-## 项目结构
+## Project Structure
 
 ```
 src/
-├── index.ts              # 入口，Express 配置，代理路由
+├── index.ts              # Entry, Express config, proxy route
 ├── db/
-│   └── index.ts          # SQLite 初始化，Schema，迁移
+│   └── index.ts          # SQLite init, schema, migration
 ├── middleware/
-│   ├── admin-auth.ts     # 管理后台 Session 认证
-│   ├── api-auth.ts       # API Key 认证
-│   └── csrf.ts           # CSRF 保护
+│   ├── admin-auth.ts     # Admin session auth
+│   ├── api-auth.ts       # API Key auth
+│   └── csrf.ts           # CSRF protection
 ├── routes/
-│   └── admin.ts          # 管理后台路由（CRUD + 统计）
+│   └── admin.ts          # Admin routes (CRUD + stats)
 └── services/
-    └── defuddle.ts       # Defuddle 解析服务
+    └── defuddle.ts       # Defuddle parsing service
+nix/modules/
+├── nixos.nix             # NixOS system module
+└── home-manager.nix      # Home Manager user module
 views/
-├── login.ejs             # 登录页
-├── dashboard.ejs         # 主面板（Keys + 域名排行）
-├── key-stats.ejs         # Key 统计详情
-├── domain-stats.ejs      # 域名统计详情
-└── layout-nav.ejs        # 导航栏
+├── login.ejs             # Login page
+├── dashboard.ejs         # Main panel (Keys + domain ranking)
+├── key-stats.ejs         # Key stats detail
+├── domain-stats.ejs      # Domain stats detail
+└── layout-nav.ejs        # Navbar
 ```
+
+## Security
+
+- Timing-safe API Key comparison to prevent timing attacks
+- CSRF protection on all state-changing requests
+- XSS prevention via content-type headers and input sanitization
+- Rate limiting (100 req/min per IP)
+- HttpOnly + Secure cookies for admin sessions
+- Cookie signed with secret key, tamper detection
+- Production mode refuses to start with default credentials
 
 ## License
 
-ISC
+[WTFPL](http://www.wtfpl.net/) — Do What The Fuck You Want To Public License
