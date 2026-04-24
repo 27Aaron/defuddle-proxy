@@ -27,6 +27,8 @@ if (process.env.NODE_ENV === "production" && (!process.env.SESSION_SECRET || pro
   process.exit(1);
 }
 
+app.set("trust proxy", 1);
+
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(
   session({
