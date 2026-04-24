@@ -1,0 +1,7 @@
+<nav class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm px-6 h-14 flex items-center justify-between sticky top-0 z-50">
+  <a href="/" class="text-sm font-semibold tracking-tight text-zinc-100">Defuddle<span class="text-zinc-500 ml-1 font-normal">Proxy</span></a>
+  <form method="POST" action="/admin/logout">
+    <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <button type="submit" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">登出</button>
+  </form>
+</nav>

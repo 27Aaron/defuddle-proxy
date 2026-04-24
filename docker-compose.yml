@@ -1,0 +1,21 @@
+services:
+  defuddle:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+      - SESSION_SECRET=changeme-to-a-random-long-string
+      - DB_PATH=./data/defuddle.db
+      - TZ=Asia/Shanghai
+      # COOKIE_SECURE=true  # 仅 HTTPS 时开启
+    volumes:
+      - defuddle-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  defuddle-data:

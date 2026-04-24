@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defuddle Proxy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { bg: '#09090b', card: '#18181b' }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-bg min-h-screen flex items-center justify-center antialiased text-zinc-100">
+  <div class="w-full max-w-xl mx-4">
+    <div class="text-center mb-10">
+      <h1 class="text-2xl font-semibold tracking-tight">Defuddle<span class="text-zinc-500 font-normal ml-2">Proxy</span></h1>
+      <p class="text-sm text-zinc-500 mt-2">将任意网页解析为 Markdown，兼容 Defuddle 官方 API</p>
+    </div>
+
+    <div class="space-y-5">
+      <!-- Method 1: Browser -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="bg-emerald-500/10 text-emerald-500 text-xs font-medium px-2 py-0.5 rounded">推荐</span>
+          <h2 class="text-sm font-medium">浏览器直接访问</h2>
+        </div>
+        <p class="text-xs text-zinc-500 mb-4">在任意网址前加上代理地址，末尾附带 Key 参数即可获取 Markdown</p>
+        <div class="bg-bg rounded-md px-4 py-3 font-mono text-xs text-zinc-300 break-all leading-relaxed border border-zinc-800">
+          <span class="text-zinc-600"><%= baseUrl %>/</span><span class="text-emerald-500">https://example.com</span><span class="text-zinc-600">?key=</span><span class="text-amber-500">sk-your-api-key</span>
+        </div>
+      </div>
+
+      <!-- Method 2: Bearer -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="bg-zinc-800 text-zinc-400 text-xs font-medium px-2 py-0.5 rounded">API</span>
+          <h2 class="text-sm font-medium">Authorization Header</h2>
+        </div>
+        <p class="text-xs text-zinc-500 mb-4">通过 HTTP 请求头传递 API Key</p>
+        <div class="bg-bg rounded-md px-4 py-3 font-mono text-xs text-zinc-300 break-all leading-relaxed border border-zinc-800">
+          <span class="text-zinc-500">curl</span> <span class="text-zinc-600"><%= baseUrl %>/</span><span class="text-emerald-500">https://example.com</span><br>
+          &nbsp;&nbsp;<span class="text-zinc-500">-H</span> <span class="text-amber-500">"Authorization: Bearer sk-your-api-key"</span>
+        </div>
+      </div>
+
+      <!-- Method 3: Query -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="bg-zinc-800 text-zinc-400 text-xs font-medium px-2 py-0.5 rounded">API</span>
+          <h2 class="text-sm font-medium">Query Parameter</h2>
+        </div>
+        <p class="text-xs text-zinc-500 mb-4">通过 URL 参数传递 API Key</p>
+        <div class="bg-bg rounded-md px-4 py-3 font-mono text-xs text-zinc-300 break-all leading-relaxed border border-zinc-800">
+          <span class="text-zinc-500">curl</span> <span class="text-zinc-600">"<%= baseUrl %>/</span><span class="text-emerald-500">https://example.com</span><span class="text-zinc-600">?key=</span><span class="text-amber-500">sk-your-api-key</span><span class="text-zinc-600">"</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-8">
+      <a href="/admin" class="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">管理后台</a>
+    </div>
+  </div>
+</body>
+</html>

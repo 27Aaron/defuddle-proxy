@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - Defuddle Proxy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#09090b',
+            card: '#18181b',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-bg min-h-screen flex items-center justify-center antialiased">
+  <div class="w-full max-w-sm mx-4">
+    <div class="mb-8 text-center">
+      <h1 class="text-xl font-semibold text-zinc-100 tracking-tight">Defuddle<span class="text-zinc-500 font-normal ml-1.5">Proxy</span></h1>
+      <p class="text-xs text-zinc-600 mt-1.5">管理后台登录</p>
+    </div>
+
+    <% if (error) { %>
+    <div class="bg-red-950/50 border border-red-900/50 text-red-400 text-xs rounded-md px-3 py-2 mb-4"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/admin/login" class="space-y-3">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div>
+        <input type="text" name="username" placeholder="用户名" required
+          class="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-colors">
+      </div>
+      <div>
+        <input type="password" name="password" placeholder="密码" required
+          class="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition-colors">
+      </div>
+      <button type="submit"
+        class="w-full bg-zinc-800 text-zinc-200 border border-zinc-700 rounded-md py-2 text-sm font-medium hover:bg-zinc-700 transition-colors">
+        登录
+      </button>
+    </form>
+  </div>
+</body>
+</html>
